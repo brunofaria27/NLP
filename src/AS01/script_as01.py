@@ -2,7 +2,6 @@ import re
 import csv
 import nltk
 import spacy
-import unicodedata
 import nltk.tokenize as to
 
 from textblob import TextBlob
@@ -23,16 +22,9 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 """# Normalização"""
-def remove_accent(input_str):
-  nfkd_form = unicodedata.normalize('NFKD', input_str)
-  return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
-
-with open('./dataset/Shakespeare.txt', 'r') as base_file_read, open("ShakespeareNormalized.txt", "w") as base_file_write:
+with open('Shakespeare.txt', 'r') as base_file_read, open("ShakespeareNormalized.txt", "w") as base_file_write:
     for line in base_file_read:
         line = line.lower()
-
-        line = remove_accent(line)
-
         line = re.sub('\.(?!(\S[^. ])|\d)', '', line)
         line = re.sub('(?<!\d)[.,;!?\'#:-](?!\d)', '', line)
         line = re.sub(' +', ' ', line)
@@ -72,26 +64,16 @@ with open('ShakespeareNormalized.txt', 'r') as base_file_read, open("Shakespeare
         tokenized_words = nltk.word_tokenize(line)
         line_tokens = [word for word in tokenized_words if not word.lower() in stop_words]
         for item in line_tokens:
-            overwritten_base_file.write('\n' + item)
+            overwritten_base_file.write(item + '\n')
             overwritten_base_file.flush()
 
 """# Text Lemmatization"""
 lemmatizer = WordNetLemmatizer()
-with open('Shakespeare.txt', 'r') as base_read_file, open("Shakespeare_Normalized_Tokenized_StopWord_Lemmatized.txt", "w") as overwritten_base_file:
+with open('Shakespeare_Normalized_Tokenized_StopWord.txt', 'r') as base_read_file, open("Shakespeare_Normalized_Tokenized_StopWord_Lemmatized.txt", "w") as overwritten_base_file:
     for line in base_read_file:
-
-        line = line.lower()
-        line = remove_accent(line)
-        line = re.sub('\.(?!(\S[^. ])|\d)', '', line)
-        line = re.sub('(?<!\d)[.,;!?\'#:-](?!\d)', '', line)
-        line = re.sub(' +', ' ', line)
-
-        tokenized_words = nltk.word_tokenize(line)
-        stop_words = [word for word in tokenized_words if not word.lower() in stop_words]
-        line_tokens = [lemmatizer.lemmatize(word) for word in stop_words]
-        for item in line_tokens:
-            overwritten_base_file.write('\n' + item)
-            overwritten_base_file.flush()
+        line_tokens = lemmatizer.lemmatize(line.strip())
+        overwritten_base_file.write(line_tokens + "\n")
+        overwritten_base_file.flush()
 
 """# Text Stemming"""
 stemmers = {
@@ -135,8 +117,10 @@ with open(lemmatization_file_path, "r") as lemmatization_file:
     lem_counter = len(tokens_lemmatization_count)
 
     for word, freq in tokens_lemmatization_count.items():
-        words_lem_len += freq * len(word)
-        words_lem_total += freq
+        a = freq
+        b = len(word)
+        words_lem_len += a
+        words_lem_total += b
 
 with open(stemming01_file_path, "r") as stemming01_file:
     tokens_stemming01 = [line.strip() for line in stemming01_file]
@@ -144,8 +128,10 @@ with open(stemming01_file_path, "r") as stemming01_file:
     stm_counter_01 = len(tokens_stemming01_count)
 
     for word, freq in tokens_stemming01_count.items():
-        wordstm_len_01 += freq * len(word)
-        wordstm_total_01 += freq
+        a = freq
+        b = len(word)
+        wordstm_len_01 += a
+        wordstm_total_01 += b
 
 with open(stemming02_file_path, "r") as stemming02_file:
     tokens_stemming02 = [line.strip() for line in stemming02_file]
@@ -153,16 +139,18 @@ with open(stemming02_file_path, "r") as stemming02_file:
     stm_counter_02 = len(tokens_stemming02_count)
 
     for word, freq in tokens_stemming02_count.items():
-        wordstm_len_02 += freq * len(word)
-        wordstm_total_02 += freq
+        a = freq
+        b = len(word)
+        wordstm_len_02 += a
+        wordstm_total_02 += b
 
-mocr_lem = lem_counter / words_lem_total if words_lem_total > 0 else 0
-mocr_ste_01 = stm_counter_01 / wordstm_total_01 if wordstm_total_01 > 0 else 0
-mocr_ste_02 = stm_counter_02 / wordstm_total_02 if wordstm_total_02 > 0 else 0
+mocr_lem = words_lem_len / lem_counter
+mocr_ste_01 = wordstm_len_01 / stm_counter_01
+mocr_ste_02 = wordstm_len_02 / stm_counter_02
 
-m_characters_lem = words_lem_len / words_lem_total
-m_characters_ste_01 = wordstm_len_01 / wordstm_total_01
-m_characters_ste_02 = wordstm_len_02 / wordstm_total_02
+m_characters_lem = words_lem_total / lem_counter
+m_characters_ste_01 = wordstm_total_01 / stm_counter_01
+m_characters_ste_02 = wordstm_total_02 / stm_counter_02
 
 with open(lemmatization_csv_path, "w") as lem_write:
     writer = csv.writer(lem_write)
